@@ -1,0 +1,278 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "locationAcronym": {
+      "type": "string",
+      "defaultValue": "UKS",
+      "allowedValues": [
+        "UKS",
+        "UKW"
+      ],
+      "metadata": {
+        "description": "Deployment Location Acronym"
+      }
+    },
+    "environmentAcronym": {
+      "type": "string",
+      "defaultValue": "DV",
+      "allowedValues": [
+        "CS",
+        "TC",
+        "DV"
+      ],
+      "metadata": {
+        "description": "Environment to be built"
+      }
+    },
+    "projectAcronym": {
+      "type": "string",
+      "defaultValue": "CMA",
+      "metadata": {
+        "description": "Project Acronym"
+      }
+    }
+  },
+  "variables": {
+    "addressOctet1": 10,
+    "addressOctet2": 152,
+    "addressOctet3": 0,
+    "addressOctet4": 0,
+    "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(variables('addressOctet3'), variables('addressOffsets')[parameters('environmentAcronym')]), '.', variables('addressOctet4'), '/22')]",
+    "addressOffsets": {
+      "CS": 0,
+      "TC": 4,
+      "DV": 8
+    },
+    "subnetPrefix": "[concat('SN-', parameters('locationAcronym'), '-', parameters('environmentAcronym'), '-')]",
+    "subnets": [
+      {
+        "name": "[concat(variables('subnetPrefix'), 'WAF')]",
+        "properties": {
+          "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(variables('addressOctet3'), variables('addressOffsets')[parameters('environmentAcronym')]), '.', variables('addressOctet4'), '/27')]"
+        }
+      },
+      {
+        "name": "[concat(variables('subnetPrefix'), 'DMZ')]",
+        "properties": {
+          "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(add(variables('addressOctet3'), 1), variables('addressOffsets')[parameters('environmentAcronym')]), '.', variables('addressOctet4'), '/28')]"
+        }
+      },
+      {
+        "name": "[concat(variables('subnetPrefix'), 'SFTP')]",
+        "properties": {
+          "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(add(variables('addressOctet3'), 1), variables('addressOffsets')[parameters('environmentAcronym')]), '.', add(variables('addressOctet4'), 16), '/28')]",
+          "networkSecurityGroup": {
+            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSFTP'))]"
+          }
+        }
+      },
+      {
+        "name": "[concat(variables('subnetPrefix'), 'ASE')]",
+        "properties": {
+          "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(add(variables('addressOctet3'), 2), variables('addressOffsets')[parameters('environmentAcronym')]), '.', variables('addressOctet4'), '/24')]"
+        }
+      },
+      {
+        "name": "GatewaySubnet",
+        "properties": {
+          "addressPrefix": "[concat(variables('addressOctet1'), '.', variables('addressOctet2'), '.', add(add(variables('addressOctet3'), 3), variables('addressOffsets')[parameters('environmentAcronym')]), '.', add(variables('addressOctet4'), 224), '/27')]"
+        }
+      }
+    ],
+    "vnetName": "[concat('VNET-', parameters('locationAcronym'), '-', parameters('environmentAcronym'), '-01')]",
+    "nsgNameSFTP": "[concat('NSG-', parameters('locationAcronym'), '-', parameters('environmentAcronym'), '-SFTP')]"
+  },
+
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('vnetName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": "[variables('subnets')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSFTP'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('nsgNameSFTP')]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "BlockPort22InBound",
+            "properties": {
+              "description": "Block traffic in from Port 2222 - acceptable IP Addresses will be allowed in via higher-priority rules",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2222",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 1005,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowLoadBalancerPort2222InBound",
+            "properties": {
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2222",
+              "sourceAddressPrefix": "AzureLoadBalancer",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow-NBS-Port222-InBound",
+            "properties": {
+              "description": "NBS-S-B2BBQ-STC-01-EXT\nNBS-S-B2BBQ-STC-02-EXT\nNBS-S-B2BBQ-NDC-01-EXT\nNBS-S-B2BBQ-NDC-02-EXT\nNBS-S-B2BBQ-CTC-01-EXT",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2222",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound",
+              "sourceAddressPrefixes": [
+                "155.131.33.21",
+                "155.131.33.22",
+                "155.131.129.21",
+                "155.131.129.22",
+                "155.131.129.23"
+              ]
+            }
+          },
+          {
+            "name": "Allow-NS-Port2222-InBound",
+            "properties": {
+              "description": "Allow New Signature SFTP traffic in",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2222",
+              "sourceAddressPrefix": "5.148.36.242",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 900,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow-AH-Home-Port2222-InBound",
+            "properties": {
+              "description": "Allow Port 2222 Inbound from Andrew Herbert's Home IP - 2018/01/19",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2222",
+              "sourceAddressPrefix": "2.97.210.176",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 905,
+              "direction": "Inbound"
+            }
+          }
+        ],
+        "defaultSecurityRules": [
+          {
+            "name": "AllowVnetInBound",
+            "properties": {
+              "description": "Allow inbound traffic from all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowAzureLoadBalancerInBound",
+            "properties": {
+              "description": "Allow inbound traffic from azure load balancer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "AzureLoadBalancer",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "DenyAllInBound",
+            "properties": {
+              "description": "Deny all inbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "AllowVnetOutBound",
+            "properties": {
+              "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "AllowInternetOutBound",
+            "properties": {
+              "description": "Allow outbound traffic from all VMs to Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "DenyAllOutBound",
+            "properties": {
+              "description": "Deny all outbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      },
+      "dependsOn": []
+    }
+  ]
+}

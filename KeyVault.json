@@ -6,11 +6,11 @@
       "type": "string",
       "defaultValue": "POC",
       "allowedValues": [
-        "Shared",
+        "SH",
         "POC",
-        "Development",
+        "DEV",
         "UAT",
-        "Production"
+        "PRD"
       ],
       "metadata": {
         "description": "Environment being deployed"
@@ -240,11 +240,9 @@
       "apiVersion": "2017-05-10",
       "name": "embeddedTemplateStorage",
       "type": "Microsoft.Resources/deployments",
-      "resourceGroup": "[parameters('storageResourceGroup')]",
       "properties": {
         "mode": "Incremental",
         "template": {
-          {
             "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
             "contentVersion": "1.0.0.0",
             "resources": [
@@ -274,7 +272,6 @@
                 ]
               }
             ]
-          }
         }
       }
     },

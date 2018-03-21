@@ -1,0 +1,343 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "POC",
+      "allowedValues": [
+        "Shared",
+        "POC",
+        "Development",
+        "UAT",
+        "Production"
+      ],
+      "metadata": {
+        "description": "Environment being deployed"
+      }
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Base name for the Key Vault and Storage Account"
+      }
+    },
+    "accessPolicies": {
+      "type": "array",
+      "defaultValue": "{}",
+      "metadata": {
+        "description": "Access policies object {\"tenantId\":\"\",\"objectId\":\"\",\"permissions\":{\"keys\":[\"\"],\"secrets\":[\"\"]}}"
+      }
+    },
+    "logsRetentionInDays": {
+      "type": "int",
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 365,
+      "metadata": {
+        "description": "Specifies the number of days that logs are gonna be kept. If you do not want to apply any retention policy and retain data forever, set value to 0."
+      }
+    },
+    "enableVaultForDeployment": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the vault is enabled for deployment by script or compute (VM, Service Fabric, ...)"
+      }
+    },
+    "enableVaultForTemplateDeployment": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the vault is enabled for a template deployment"
+      }
+    },
+    "enableVaultForDiskEncryption": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the azure platform has access to the vault for enabling disk encryption scenarios."
+      }
+    },
+    "vaultSku": {
+      "type": "string",
+      "defaultValue": "Premium",
+      "allowedValues": [
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "Specifies the SKU for the vault"
+      }
+    },
+    "preventDeletion": {
+      "type": "string",
+      "allowedValues": [
+        "enabled",
+        "disabled"
+      ],
+      "defaultValue": "enabled"
+    },
+    "storageResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the Storage Resource Group"
+      }
+    }
+  },
+  "variables": {
+    "locationAcronym": "[variables('locationLUT')[resourceGroup().location].acronym]",
+    "location": "[variables('locationLUT')[resourceGroup().location].name]",
+    "locationLUT": {
+      "usgovvirginia": {
+        "name": "USGov Virginia",
+        "acronym": "USGV"
+      },
+      "usgoviowa": {
+        "name": "USGov Iowa",
+        "acronym": "USGI"
+      },
+      "usdodeast": {
+        "name": "USDoD East",
+        "acronym": "USDE"
+      },
+      "usdodcentral": {
+        "name": "USDoD Central",
+        "acronym": "USDC"
+      },
+      "usgovtexas": {
+        "name": "USGov Texas",
+        "acronym": "USGT"
+      },
+      "usgovarizona": {
+        "name": "USGov Arizona",
+        "acronym": "USGA"
+      },
+      "eastasia": {
+        "name": "East Asia",
+        "acronym": "EA"
+      },
+      "southeastasia": {
+        "name": "Southeast Asia",
+        "acronym": "SEA"
+      },
+      "centralus": {
+        "name": "Central US",
+        "acronym": "CUS"
+      },
+      "eastus": {
+        "name": "East US",
+        "acronym": "EUS"
+      },
+      "eastus2": {
+        "name": "East US 2",
+        "acronym": "EUS2"
+      },
+      "westus": {
+        "name": "West US",
+        "acronym": "WUS"
+      },
+      "northcentralus": {
+        "name": "North Central US",
+        "acronym": "NCUS"
+      },
+      "southcentralus": {
+        "name": "South Central US",
+        "acronym": "SCUS"
+      },
+      "northeurope": {
+        "name": "North Europe",
+        "acronym": "NEU"
+      },
+      "westeurope": {
+        "name": "West Europe",
+        "acronym": "WEU"
+      },
+      "japanwest": {
+        "name": "Japan West",
+        "acronym": "JW"
+      },
+      "japaneast": {
+        "name": "Japan East",
+        "acronym": "JE"
+      },
+      "brazilsouth": {
+        "name": "Brazil South",
+        "acronym": "BZS"
+      },
+      "australiaeast": {
+        "name": "Australia East",
+        "acronym": "AUE"
+      },
+      "australiasoutheast": {
+        "name": "Australia Southeast",
+        "acronym": "AUSE"
+      },
+      "southindia": {
+        "name": "South India",
+        "acronym": "SI"
+      },
+      "centralindia": {
+        "name": "Central India",
+        "acronym": "CI"
+      },
+      "westindia": {
+        "name": "West India",
+        "acronym": "WI"
+      },
+      "canadacentral": {
+        "name": "Canada Central",
+        "acronym": "CC"
+      },
+      "canadaeast": {
+        "name": "Canada East",
+        "acronym": "CE"
+      },
+      "uksouth": {
+        "name": "UK South",
+        "acronym": "UKS"
+      },
+      "ukwest": {
+        "name": "UK West",
+        "acronym": "UKW"
+      },
+      "westcentralus": {
+        "name": "West Central US",
+        "acronym": "WCUS"
+      },
+      "westus2": {
+        "name": "West US 2",
+        "acronym": "WUS2"
+      },
+      "koreacentral": {
+        "name": "Korea Central",
+        "acronym": "KC"
+      },
+      "koreasouth": {
+        "name": "Korea South",
+        "acronym": "KS"
+      }
+    },
+    "keyVaultName": "[toUpper(concat('KV-', variables('locationAcronym'), '-', parameters('name')))]",
+    "uniqueString": "[uniqueString(subscription().id, resourceGroup().id)]",
+    "diagnosticStorageAccountName": "[toLower(replace(replace(variables('keyVaultName'), 'KV-', 'SA-'), '-', ''))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "embeddedTemplateStorage",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('storageResourceGroup')]",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          {
+            "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "resources": [
+              {
+                "type": "Microsoft.Storage/storageAccounts",
+                "name": "[variables('diagnosticStorageAccountName')]",
+                "apiVersion": "2017-10-01",
+                "location": "[variables('location')]",
+                "sku": {
+                  "name": "Standard_GRS"
+                },
+                "kind": "Storage",
+                "properties": {}
+              },
+              {
+                "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
+                "comments": "Resource lock on diagnostics storage account",
+                "type": "Microsoft.Storage/storageAccounts/providers/locks",
+                "location": "[resourceGroup().location]",
+                "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/storageDoNotDelete')]",
+                "apiVersion": "2016-09-01",
+                "properties": {
+                  "level": "CannotDelete"
+                },
+                "dependsOn": [
+                  "[variables('diagnosticStorageAccountName')]"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "name": "[variables('keyVaultName')]",
+      "apiVersion": "2016-10-01",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "Key Vault with logging"
+      },
+      "properties": {
+        "enabledForDeployment": "[parameters('enableVaultForDeployment')]",
+        "enabledForTemplateDeployment": "[parameters('enableVaultForTemplateDeployment')]",
+        "enabledForDiskEncryption": "[parameters('enableVaultForDiskEncryption')]",
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": "[parameters('AccessPolicies')]",
+        "sku": {
+          "name": "[parameters('vaultSku')]",
+          "family": "A"
+        }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+          "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/service')]",
+          "apiVersion": "2016-10-01",
+          "location": "[variables('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+            "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticStorageAccountName'))]"
+          ],
+          "properties": {
+            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",
+            "logs": [
+              {
+                "category": "AuditEvent",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "[parameters('LogsRetentionInDays')]"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
+      "comments": "Resource lock on Key Vault",
+      "type": "Microsoft.KeyVault/vaults/providers/locks",
+      "location": "[variables('location')]",
+      "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/keyVaultDoNotDelete')]",
+      "apiVersion": "2016-09-01",
+      "properties": {
+        "level": "CannotDelete"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticStorageAccountName'))]"
+      ]
+    }
+  ],
+  "outputs": {}
+}

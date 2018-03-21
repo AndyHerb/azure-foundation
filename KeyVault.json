@@ -271,7 +271,7 @@
                   "[variables('diagnosticStorageAccountName')]"
                 ]
               }
-            ]
+          ]
         }
       }
     },

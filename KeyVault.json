@@ -280,9 +280,6 @@
       "name": "[variables('keyVaultName')]",
       "apiVersion": "2016-10-01",
       "location": "[variables('location')]",
-      "tags": {
-        "displayName": "Key Vault with logging"
-      },
       "properties": {
         "enabledForDeployment": "[parameters('enableVaultForDeployment')]",
         "enabledForTemplateDeployment": "[parameters('enableVaultForTemplateDeployment')]",

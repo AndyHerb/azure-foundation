@@ -243,35 +243,35 @@
       "properties": {
         "mode": "Incremental",
         "template": {
-            "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-            "contentVersion": "1.0.0.0",
-            "resources": [
-              {
-                "type": "Microsoft.Storage/storageAccounts",
-                "name": "[variables('diagnosticStorageAccountName')]",
-                "apiVersion": "2017-10-01",
-                "location": "[variables('location')]",
-                "sku": {
-                  "name": "Standard_GRS"
-                },
-                "kind": "Storage",
-                "properties": {}
+          "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "name": "[variables('diagnosticStorageAccountName')]",
+              "apiVersion": "2017-10-01",
+              "location": "[variables('location')]",
+              "sku": {
+                "name": "Standard_GRS"
               },
-              {
-                "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
-                "comments": "Resource lock on diagnostics storage account",
-                "type": "Microsoft.Storage/storageAccounts/providers/locks",
-                "location": "[resourceGroup().location]",
-                "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/storageDoNotDelete')]",
-                "apiVersion": "2016-09-01",
-                "properties": {
-                  "level": "CannotDelete"
-                },
-                "dependsOn": [
-                  "[variables('diagnosticStorageAccountName')]"
-                ]
-              }
-            ]
+              "kind": "Storage",
+              "properties": {}
+            },
+            {
+              "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
+              "comments": "Resource lock on diagnostics storage account",
+              "type": "Microsoft.Storage/storageAccounts/providers/locks",
+              "location": "[resourceGroup().location]",
+              "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/storageDoNotDelete')]",
+              "apiVersion": "2016-09-01",
+              "properties": {
+                "level": "CannotDelete"
+              },
+              "dependsOn": [
+                "[variables('diagnosticStorageAccountName')]"
+              ]
+            }
+          ]
         }
       }
     },

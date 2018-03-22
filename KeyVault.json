@@ -237,7 +237,7 @@
   "resources": [
     {
       "apiVersion": "2017-05-10",
-      "name": "embeddedTemplateStorage",
+      "name": "diagnosticsStorage",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "Incremental",
@@ -314,6 +314,9 @@
             ]
           }
         }
+      ],
+      "dependsOn": [
+        "diagnosticsStorage"
       ]
     },
     {
@@ -327,8 +330,7 @@
         "level": "CannotDelete"
       },
       "dependsOn": [
-        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticStorageAccountName'))]"
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]"
       ]
     }
   ],

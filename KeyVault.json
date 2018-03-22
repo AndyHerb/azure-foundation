@@ -16,7 +16,7 @@
         "description": "Environment being deployed"
       }
     },
-    "name": {
+    "basename": {
       "type": "string",
       "minLength": 1,
       "metadata": {
@@ -231,7 +231,7 @@
         "acronym": "KS"
       }
     },
-    "keyVaultName": "[toUpper(concat('KV-', parameters('name')))]",
+    "keyVaultName": "[toUpper(concat('KV-', parameters('basename')))]",
     "diagnosticStorageAccountName": "[toLower(replace(concat('sa', variables('keyVaultName'), 'diag'), '-', '-'))]"
   },
   "resources": [

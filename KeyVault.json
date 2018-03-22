@@ -231,9 +231,8 @@
         "acronym": "KS"
       }
     },
-    "keyVaultName": "[toUpper(concat('KV-', variables('locationAcronym'), '-', parameters('name')))]",
-    "uniqueString": "[uniqueString(subscription().id, resourceGroup().id)]",
-    "diagnosticStorageAccountName": "[toLower(replace(replace(variables('keyVaultName'), 'KV-', 'SA-'), '-', ''))]"
+    "keyVaultName": "[toUpper(concat('KV-', parameters('name')))]",
+    "diagnosticStorageAccountName": "[toLower(replace(concat('sa', variables('keyVaultName'), 'diag'), '-', '-'))]"
   },
   "resources": [
     {

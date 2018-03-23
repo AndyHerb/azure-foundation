@@ -307,6 +307,16 @@
               "days": "[parameters('LogsRetentionInDays')]"
             }
           }
+        ],
+        "metrics": [
+          {
+            "category": "AllMetrics",
+            "enabled": true,
+            "retentionPolicy": {
+              "enabled": false,
+              "days": "[parameters('LogsRetentionInDays')]"
+            }
+          }
         ]
       },
       "dependsOn": [

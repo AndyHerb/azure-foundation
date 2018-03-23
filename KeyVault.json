@@ -297,7 +297,7 @@
       "apiVersion": "2016-09-01",
       "location": "[variables('location')]",
       "properties": {
-        "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",
+        "storageAccountId": "[resourceId(parameters('storageResourceGroup'), 'Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",
         "logs": [
           {
             "category": "AuditEvent",

@@ -86,10 +86,10 @@
     "preventDeletion": {
       "type": "string",
       "allowedValues": [
-        "enabled",
-        "disabled"
+        "Yes",
+        "No"
       ],
-      "defaultValue": "enabled"
+      "defaultValue": "Yes"
     },
     "storageResourceGroup": {
       "type": "string",

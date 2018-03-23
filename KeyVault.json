@@ -295,7 +295,7 @@
     {
       "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
       "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/service')]",
-      "apiVersion": "2016-10-01",
+      "apiVersion": "2016-09-01",
       "location": "[variables('location')]",
       "properties": {
         "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",

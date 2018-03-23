@@ -248,6 +248,7 @@
             {
               "type": "Microsoft.Storage/storageAccounts",
               "name": "[variables('diagnosticStorageAccountName')]",
+              "resourceGroup": "[parameters('storageResourceGroup')]",
               "apiVersion": "2017-10-01",
               "location": "[variables('location')]",
               "sku": {

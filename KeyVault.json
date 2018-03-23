@@ -239,6 +239,7 @@
       "apiVersion": "2017-05-10",
       "name": "diagnosticsStorage",
       "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('storageResourceGroup')]",
       "properties": {
         "mode": "Incremental",
         "template": {
@@ -248,7 +249,6 @@
             {
               "type": "Microsoft.Storage/storageAccounts",
               "name": "[variables('diagnosticStorageAccountName')]",
-              "resourceGroup": "[parameters('storageResourceGroup')]",
               "apiVersion": "2017-10-01",
               "location": "[variables('location')]",
               "sku": {

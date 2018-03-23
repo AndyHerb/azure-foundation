@@ -290,32 +290,27 @@
           "family": "A"
         }
       },
-      "resources": [
-        {
-          "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
-          "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/service')]",
-          "apiVersion": "2016-10-01",
-          "location": "[variables('location')]",
-          "dependsOn": [
-            "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-            "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticStorageAccountName'))]"
-          ],
-          "properties": {
-            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",
-            "logs": [
-              {
-                "category": "AuditEvent",
+      {
+        "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+        "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/service')]",
+        "apiVersion": "2016-10-01",
+        "location": "[variables('location')]",
+        "properties": {
+          "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('diagnosticStorageAccountName'))]",
+          "logs": [
+            {
+              "category": "AuditEvent",
+              "enabled": true,
+              "retentionPolicy": {
                 "enabled": true,
-                "retentionPolicy": {
-                  "enabled": true,
-                  "days": "[parameters('LogsRetentionInDays')]"
-                }
+                "days": "[parameters('LogsRetentionInDays')]"
               }
-            ]
-          }
+            }
+          ]
         }
-      ],
+      },
       "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
         "diagnosticsStorage"
       ]
     },

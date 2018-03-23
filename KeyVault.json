@@ -261,7 +261,6 @@
               "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
               "comments": "Resource lock on diagnostics storage account",
               "type": "Microsoft.Storage/storageAccounts/providers/locks",
-              "location": "[resourceGroup().location]",
               "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/storageDoNotDelete')]",
               "apiVersion": "2016-09-01",
               "properties": {
@@ -319,7 +318,6 @@
       "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
       "comments": "Resource lock on Key Vault",
       "type": "Microsoft.KeyVault/vaults/providers/locks",
-      "location": "[variables('location')]",
       "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/keyVaultDoNotDelete')]",
       "apiVersion": "2016-09-01",
       "properties": {

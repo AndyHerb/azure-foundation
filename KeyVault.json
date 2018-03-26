@@ -2,20 +2,6 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "environment": {
-      "type": "string",
-      "defaultValue": "POC",
-      "allowedValues": [
-        "SH",
-        "POC",
-        "DEV",
-        "UAT",
-        "PRD"
-      ],
-      "metadata": {
-        "description": "Environment being deployed"
-      }
-    },
     "basename": {
       "type": "string",
       "minLength": 1,
@@ -261,7 +247,7 @@
               "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
               "comments": "Resource lock on diagnostics storage account",
               "type": "Microsoft.Storage/storageAccounts/providers/locks",
-              "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/storageDoNotDelete')]",
+              "name": "[concat(variables('diagnosticStorageAccountName'), '/Microsoft.Authorization/PreventDeletion')]",
               "apiVersion": "2016-09-01",
               "properties": {
                 "level": "CannotDelete"
@@ -328,7 +314,7 @@
       "condition": "[equals(parameters('preventDeletion'), 'Yes')]",
       "comments": "Resource lock on Key Vault",
       "type": "Microsoft.KeyVault/vaults/providers/locks",
-      "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/keyVaultDoNotDelete')]",
+      "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/PreventDeletion')]",
       "apiVersion": "2016-09-01",
       "properties": {
         "level": "CannotDelete"
